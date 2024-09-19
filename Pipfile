@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 django-cors-headers = "4.3.1"
 django = "==5.1"
+django-environ = "*"
 
 [dev-packages]
 

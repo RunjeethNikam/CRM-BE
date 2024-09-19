@@ -39,7 +39,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='customer')
     is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)  # Allows admin access in Django admin panel
+    is_staff = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email', 'role']

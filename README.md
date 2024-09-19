@@ -35,6 +35,8 @@ Follow these steps to get the CRM application up and running:
 5. **Apply Migrations**
     ```bash
     python manage.py migrate
+    python manage.py loaddata db.sqlite3
+    // admin password is rohit1234
     ```
 6. **Apply Migrations**
     ```bash
