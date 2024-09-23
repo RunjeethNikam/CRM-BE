@@ -1,7 +1,9 @@
+import random
 from rest_framework import serializers
 from .models import Ticket
 
 from django.contrib.auth import get_user_model
+from django.core import exceptions
 from comments.models import Comment
 
 User = get_user_model()
@@ -39,19 +41,28 @@ class TicketListSerializer(serializers.ModelSerializer):
 
 
 class TicketSerializer(serializers.ModelSerializer):
-    assigned = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), required=False, allow_null=True
-    )
 
     class Meta:
         model = Ticket
         fields = [
             "subject",
             "description",
-            "assigned",
             "created_by",
             "status",
             "created_at",
             "archive",
         ]
         extra_kwargs = {"archive": {"default": False}}
+
+    def create(self, validated_data):
+        if not validated_data.get("assigned"):
+            employees = User.objects.filter(role=User.ROLE_EMPLOYEE)
+
+            if not employees.exists():
+                raise exceptions.ValidationError("No employees available to assign.")
+
+            # Randomly select an employee
+            validated_data["assigned"] = random.choice(employees)
+
+        # Create and return the ticket
+        return super().create(validated_data)
