@@ -13,7 +13,6 @@ from django.core.mail import send_mail
 from django.utils.encoding import force_bytes
 from django.core.mail import send_mail
 
-# from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_decode
 
 from rest_framework.permissions import AllowAny
@@ -56,7 +55,7 @@ class LoginView(generics.CreateAPIView):
             if user is not None and user.check_password(password) and user.role == role:
                 token, _ = Token.objects.get_or_create(user_id=user.id)
                 return response.Response(
-                    {"token": str(token.key), "id": user.id}, status=status.HTTP_200_OK
+                    {"token": str(token.key), "id": user.id, "username":  user.username}, status=status.HTTP_200_OK
                 )
             return response.Response(
                 {"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED

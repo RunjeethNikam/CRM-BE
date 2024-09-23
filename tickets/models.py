@@ -34,6 +34,7 @@ class Ticket(models.Model):
     )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Open')
     created_at = models.DateTimeField(default=timezone.now)
+    archive = models.BooleanField(default=False)
 
     def __str__(self):
         return self.subject

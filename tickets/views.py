@@ -1,6 +1,7 @@
-from rest_framework import generics, permissions, exceptions
+from rest_framework import generics, permissions, exceptions, response, status
 from .models import Ticket
 from .serializers import TicketListSerializer, TicketSerializer
+from django.shortcuts import get_object_or_404
 
 from users.models import User
 
@@ -45,3 +46,25 @@ class TicketCreateView(generics.CreateAPIView):
             )
 
         serializer.save(created_by=user)
+
+
+class TicketArchiveUpdateView(APIView):
+    """
+    API view to update the archive status of a ticket.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def patch(self, request, pk):
+        ticket = get_object_or_404(Ticket, pk=pk)
+        archive_status = request.data.get("archive", None)
+
+        if archive_status is not None:
+            ticket.archive = archive_status
+            ticket.save()
+            return response.Response(
+                {"message": "Ticket archive status updated."}, status=status.HTTP_200_OK
+            )
+        return response.Response(
+            {"error": "Invalid request, archive status not provided."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )

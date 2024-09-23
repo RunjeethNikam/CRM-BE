@@ -11,11 +11,11 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["id", "username", "email", "role", "password"]
+        fields = ["id", "username", "email", "role", "password", "joined_date"]
 
     def create(self, validated_data):
-        validated_data["email"] = validated_data["email"].lower()
-        validated_data["username"] = validated_data["username"].lower()
+        validated_data["email"] = validated_data["email"].lower().strip()
+        validated_data["username"] = validated_data["username"].lower().strip()
         user = User(
             username=validated_data["username"],
             email=validated_data["email"],
@@ -29,7 +29,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
 class AddUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["email", "username", "role"]
+        fields = ["email", "username", "role", "joined_date"]
         read_only_fields = ["role"]
 
     def create(self, validated_data):
@@ -88,6 +88,7 @@ class UserSerializer(serializers.ModelSerializer):
             "role",
             "assigned_tickets",
             "created_tickets",
+            "joined_date"
         ]
 
 

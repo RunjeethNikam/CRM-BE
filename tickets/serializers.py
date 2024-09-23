@@ -1,4 +1,3 @@
-# serializers.py
 from rest_framework import serializers
 from .models import Ticket
 
@@ -19,7 +18,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class TicketListSerializer(serializers.ModelSerializer):
     created_by = serializers.CharField(source="created_by.username", read_only=True)
-    comments = CommentSerializer(many=True, read_only=True)
+    comments = serializers.SerializerMethodField()
 
     class Meta:
         model = Ticket
@@ -33,6 +32,10 @@ class TicketListSerializer(serializers.ModelSerializer):
             "status",
             "created_at",
         ]
+
+    def get_comments(self, obj):
+        sorted_comments = obj.comments.order_by('-created_at')
+        return CommentSerializer(sorted_comments, many=True).data
 
 
 class TicketSerializer(serializers.ModelSerializer):
@@ -49,4 +52,6 @@ class TicketSerializer(serializers.ModelSerializer):
             "created_by",
             "status",
             "created_at",
+            "archive",
         ]
+        extra_kwargs = {"archive": {"default": False}}
