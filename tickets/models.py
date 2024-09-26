@@ -1,5 +1,7 @@
 # models.py
 import uuid
+import random
+import string
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -15,7 +17,7 @@ class Ticket(models.Model):
         ('CLOSED', 'Closed'),
     ]
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.CharField(primary_key=True, max_length=20, editable=False, unique=True)
     subject = models.CharField(max_length=255)
     description = models.TextField()
     assigned = models.ForeignKey(
@@ -38,3 +40,19 @@ class Ticket(models.Model):
 
     def __str__(self):
         return self.subject
+    
+    def save(self, *args, **kwargs):
+        if not self.id:
+            last_ticket = Ticket.objects.all().order_by('created_at').last()
+
+            if last_ticket:
+                last_id = int(last_ticket.id.split('-')[-1])
+                new_id = last_id + 1
+            else:
+                new_id = 1
+
+            # Generate the new ticket ID with the format 'CRM-TID-0000001'
+            self.id = f"CRM-TID-{new_id:07d}"  # Ensures the number is padded to 7 digits
+
+        super(Ticket, self).save(*args, **kwargs)
+

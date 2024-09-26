@@ -21,6 +21,7 @@ class CommentSerializer(serializers.ModelSerializer):
 class TicketListSerializer(serializers.ModelSerializer):
     created_by = serializers.CharField(source="created_by.username", read_only=True)
     comments = serializers.SerializerMethodField()
+    assigned = serializers.CharField(source="assigned.username", read_only=True)
 
     class Meta:
         model = Ticket
