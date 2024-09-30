@@ -57,7 +57,7 @@ class TicketSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         if not validated_data.get("assigned"):
-            employees = User.objects.filter(role=User.ROLE_EMPLOYEE)
+            employees = User.objects.filter(role=User.ROLE_EMPLOYEE, deleted=False)
 
             if not employees.exists():
                 raise exceptions.ValidationError("No employees available to assign.")

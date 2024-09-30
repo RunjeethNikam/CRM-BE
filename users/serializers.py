@@ -34,6 +34,8 @@ class AddUserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data["role"] = User.ROLE_EMPLOYEE
+        validated_data["deleted"] = False
+
         return super().create(validated_data)
 
 

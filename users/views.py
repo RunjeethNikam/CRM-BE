@@ -12,6 +12,7 @@ from django.contrib.auth.hashers import make_password
 from django.core.mail import send_mail
 from django.utils.encoding import force_bytes
 from django.core.mail import send_mail
+from django.shortcuts import get_object_or_404
 
 from django.utils.http import urlsafe_base64_decode
 
@@ -21,7 +22,7 @@ from rest_framework import generics, response, status, views
 
 
 class UserCreateView(generics.CreateAPIView):
-    queryset = User.objects.all()
+    queryset = User.objects.filter(deleted=False)
     serializer_class = user_serializers.UserCreateSerializer
     permission_classes = [AllowAny]
 
@@ -51,11 +52,12 @@ class LoginView(generics.CreateAPIView):
             email = serializer.validated_data["email"]
             password = serializer.validated_data["password"]
             role = serializer.validated_data["role"]
-            user = User.objects.get(email=email)
+            user = get_object_or_404(User, email=email)
             if user is not None and user.check_password(password) and user.role == role:
                 token, _ = Token.objects.get_or_create(user_id=user.id)
                 return response.Response(
-                    {"token": str(token.key), "id": user.id, "username":  user.username}, status=status.HTTP_200_OK
+                    {"token": str(token.key), "id": user.id, "username": user.username},
+                    status=status.HTTP_200_OK,
                 )
             return response.Response(
                 {"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED
@@ -74,15 +76,6 @@ class AddUserView(views.APIView):
             )
             hashed_password = make_password(random_password)
             serializer.save(password=hashed_password)
-            # new_user = serializer.save(password=hashed_password)
-
-            # send_mail(
-            #     "Your New Account Password",
-            #     f"Hello {new_user.username}, your account has been created. Your password is: {random_password}",
-            #     "donotreply@gmail.com",
-            #     [new_user.email],
-            #     fail_silently=False,
-            # )
 
             return response.Response(
                 {"password": random_password},
@@ -187,7 +180,7 @@ class UserTicketView(views.APIView):
             )
 
         # Filter users based on role
-        users = User.objects.filter(role=user_type.upper())
+        users = User.objects.filter(role=user_type.upper(), deleted=False)
 
         if not users.exists():
             return response.Response(
@@ -221,3 +214,46 @@ class PasswordResetView(views.APIView):
             )
 
         return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SoftDeleteUserView(generics.GenericAPIView):
+    permission_classes = [IsAdminUser]  # Only allow admins to delete users
+
+    def post(self, request, *args, **kwargs):
+        # Get the user by ID (this assumes the user ID is passed in the URL)
+        user_id = kwargs.get("user_id")
+        user = get_object_or_404(User, id=user_id)
+
+        # If the user is already marked as deleted
+        if user.deleted:
+            return response.Response(
+                {"message": "User is already deleted."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Mark the user as deleted
+        user.deleted = True
+        user.save()
+
+        # Reassign the user's tickets
+        self.reassign_tickets(user)
+
+        return response.Response(
+            {"message": "User deleted successfully."}, status=status.HTTP_200_OK
+        )
+
+    def reassign_tickets(self, user):
+        # Find all tickets assigned to this user
+        from tickets.models import Ticket
+
+        tickets = Ticket.objects.filter(assigned=user)
+
+        # Reassign the tickets to the new employee
+        for ticket in tickets:
+            new_assignee = (
+                User.objects.filter(role="EMPLOYEE", deleted=False)
+                .order_by("?")
+                .first()
+            )
+            ticket.assigned = new_assignee
+            ticket.save()
