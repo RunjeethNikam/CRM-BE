@@ -48,7 +48,7 @@ class TicketCreateView(generics.CreateAPIView):
         serializer.save(created_by=user)
 
 
-class TicketArchiveUpdateView(APIView):
+class TicketArchiveUpdateView(views.APIView):
     """
     API view to update the archive status of a ticket.
     """
