@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 
 
 class CommentCreateSerializer(serializers.ModelSerializer):
-    ticket_id = serializers.UUIDField(write_only=True)
+    ticket_id = serializers.CharField(write_only=True)
     text = serializers.CharField()
 
     class Meta:

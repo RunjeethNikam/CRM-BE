@@ -237,6 +237,7 @@ class SoftDeleteUserView(generics.GenericAPIView):
 
         # Reassign the user's tickets
         self.reassign_tickets(user)
+        self.delete_tokens(user)
 
         return response.Response(
             {"message": "User deleted successfully."}, status=status.HTTP_200_OK
@@ -257,3 +258,6 @@ class SoftDeleteUserView(generics.GenericAPIView):
             )
             ticket.assigned = new_assignee
             ticket.save()
+
+    def delete_tokens(self, user):
+        Token.objects.filter(user=user).delete()
