@@ -90,7 +90,8 @@ class UserSerializer(serializers.ModelSerializer):
             "role",
             "assigned_tickets",
             "created_tickets",
-            "joined_date"
+            "joined_date",
+            "deleted"
         ]
 
 
