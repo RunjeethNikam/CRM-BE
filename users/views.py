@@ -180,7 +180,7 @@ class UserTicketView(views.APIView):
             )
 
         # Filter users based on role
-        users = User.objects.filter(role=user_type.upper(), deleted=False)
+        users = User.objects.filter(role=user_type.upper())
 
         if not users.exists():
             return response.Response(
